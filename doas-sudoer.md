@@ -5,7 +5,7 @@
 1.  **Install `doas`:**
     ```bash
     sudo apt update
-    sudo apt install doas
+    sudo apt install doas # or "opendoas"
     ```
 
 2.  **Edit `doas.conf`:**
