@@ -5,9 +5,23 @@ sandboxed environment for a process by changing its apparent root directory.
 - first: use debootstrap
 - second: pure edition
 
-When use for ai-agent:
+**When use for ai-agent**:
 - Improved Execution: `sudo chroot "$JAIL_DIR" /usr/bin/setpriv --no-new-privs --clear-groups --reset-env --uid=1000 --gid=1000 --exec /bin/bash -c "$*"`
 - Note: This assumes a non-root user (UID/GID 1000) is manually added to the jail's `/etc/passwd` and `/etc/group` files during setup.
+
+**Example Agent Execution Flow**
+
+If the agent needs to run a worker script named /worker/process.sh that takes an input file and produces an output file:
+
+Setup Phase (First Run):
+- Agent Action: Execute the jail_manual script, specifying /worker/process.sh as the command.
+- Script Result: The script automatically runs create_jail_structure and copy_binary_and_dependencies for /worker/process.sh and /bin/bash, creating the environment.
+
+Execution Phase (Every Run):
+- Agent Action 1 (Inject Input): sudo cp /path/to/input.txt "$JAIL_DIR/input.txt"
+- Agent Action 2 (Run Worker): sudo chroot "$JAIL_DIR" /bin/bash -c "/worker/process.sh input.txt output.txt"
+- Agent Action 3 (Extract Output): sudo cp "$JAIL_DIR/output.txt" /path/to/main_system/result.txt
+- Agent Action 4 (Cleanup): The script automatically cleans up the /proc mount and returns the result.
 
 -----
 
