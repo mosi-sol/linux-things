@@ -244,7 +244,7 @@ The root directory of the chroot environment.
 
 Using the manual method ensures your jail is as small as possible, containing **only** the binaries and libraries required for your specific worker command. This is often more secure as it reduces the attack surface.
 
-Here is the modified Bash script that uses manual file copying instead of `debootstrap`.
+This is the modified Bash script that uses manual file copying instead of `debootstrap`.
 
 ### **Prerequisites**
 
