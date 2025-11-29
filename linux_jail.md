@@ -2,8 +2,12 @@ The term "jail" on Linux, especially Debian, typically refers to **chroot** (cha
 sandboxed environment for a process by changing its apparent root directory.
 
 - code and documentation.
+- first: use debootstrap
+- second: pure edition
 
 -----
+
+# Debootstrap edition
 
 ## 🔒 Explanation: Using `chroot` for Sandboxing
 
@@ -231,3 +235,164 @@ The root directory of the chroot environment.
 # NOTE: The above commands are a demonstration. To actually install the man page,
 # you would need administrative rights on the system.
 ```
+
+---
+
+# Pure edition
+
+## 🛠️ Manual Jail Creation: The Minimal Method
+
+Using the manual method ensures your jail is as small as possible, containing **only** the binaries and libraries required for your specific worker command. This is often more secure as it reduces the attack surface.
+
+Here is the modified Bash script that uses manual file copying instead of `debootstrap`.
+
+### **Prerequisites**
+
+You must run this setup as **root** (using `sudo`) because it copies system files.
+
+### **The Bash Script: `jail_manual`**
+
+This script includes functions to automatically find and copy the necessary libraries (`ldd` command is used for this).
+
+```bash
+#!/bin/bash
+
+# Configuration
+JAIL_DIR="/var/chroot/jail_manual_sandbox"
+
+# --- Functions ---
+
+# Function to display usage information
+usage() {
+    echo "Usage: $0 <command_to_run> [args...]"
+    echo "Example: $0 /bin/ls -l /"
+    echo "The command will be executed inside the chroot environment at $JAIL_DIR."
+    echo "The full path to the command MUST be provided, e.g., /bin/bash."
+    exit 1
+}
+
+# Function to create basic directory structure
+create_jail_structure() {
+    echo "🔨 Creating basic jail structure in $JAIL_DIR..."
+    sudo mkdir -p "$JAIL_DIR"/{bin,etc,lib,lib64,usr,proc,dev}
+    
+    # Create device nodes needed for basic operation
+    # This requires administrative rights
+    sudo mknod -m 666 "$JAIL_DIR"/dev/null c 1 3
+    sudo mknod -m 666 "$JAIL_DIR"/dev/zero c 1 5
+    sudo mknod -m 600 "$JAIL_DIR"/dev/random c 1 8
+    sudo mknod -m 600 "$JAIL_DIR"/dev/urandom c 1 9
+    echo "✅ Jail structure created."
+}
+
+# Function to copy a binary and all its dependencies
+copy_binary_and_dependencies() {
+    local BINARY_PATH="$1"
+    local DEST_DIR="$JAIL_DIR"
+
+    if [ ! -f "$BINARY_PATH" ]; then
+        echo "🚨 ERROR: Binary not found: $BINARY_PATH"
+        return 1
+    fi
+
+    echo "📂 Copying binary: $BINARY_PATH"
+    # Create the necessary directory structure inside the jail (e.g., /usr/bin -> $JAIL_DIR/usr/bin)
+    sudo mkdir -p "$DEST_DIR$(dirname "$BINARY_PATH")"
+    sudo cp "$BINARY_PATH" "$DEST_DIR$BINARY_PATH"
+
+    echo "📚 Finding and copying dependencies for $BINARY_PATH..."
+    
+    # Use ldd to find the required shared libraries and copy them
+    ldd "$BINARY_PATH" | while read -r line ; do
+        # Extract the library path from the output (e.g., /lib/x86_64-linux-gnu/libc.so.6)
+        local LIB_PATH=$(echo "$line" | awk '{ print $3 }' | sed 's/)$//')
+
+        if [[ "$LIB_PATH" =~ ^/ ]] && [ -f "$LIB_PATH" ]; then
+            local LIB_DIR=$(dirname "$LIB_PATH")
+            
+            # Create the library directory inside the jail
+            sudo mkdir -p "$DEST_DIR$LIB_DIR"
+            
+            # Copy the library file
+            sudo cp -L "$LIB_PATH" "$DEST_DIR$LIB_DIR"
+            echo "   -> Copied library: $LIB_PATH"
+        fi
+    done
+}
+
+# Function to clean up mounts
+cleanup() {
+    echo "🧹 Cleaning up mounts..."
+    # Unmount /proc if it was mounted
+    if mountpoint -q "$JAIL_DIR"/proc; then
+        sudo umount "$JAIL_DIR"/proc
+    fi
+    echo "✅ Cleanup complete."
+}
+
+# --- Main Execution ---
+
+# Check if a command was provided
+if [ $# -eq 0 ]; then
+    usage
+fi
+
+COMMAND_TO_JAIL="$1"
+
+# 1. Setup/Provision the Jail Environment (Run this only the first time!)
+# We check for the device nodes to see if the jail is setup
+if [ ! -c "$JAIL_DIR/dev/null" ]; then
+    echo "--- INITIAL JAIL SETUP ---"
+    create_jail_structure
+    
+    # Copy the command you want to run inside the jail, and its dependencies
+    copy_binary_and_dependencies "$COMMAND_TO_JAIL"
+
+    # You MUST copy at least /bin/sh or /bin/bash to handle the shell execution
+    copy_binary_and_dependencies /bin/bash
+    copy_binary_and_dependencies /bin/ls # A utility that is often useful
+
+    # Copy the dynamic linker/loader itself (essential for execution)
+    # The path varies, check your system: /lib/ld-linux.so.2 or /lib64/ld-linux-x86-64.so.2
+    LD_LOADER=$(/bin/bash -c "ldd /bin/bash | head -1 | awk '{print \$1}'")
+    if [ ! -f "$JAIL_DIR/$LD_LOADER" ]; then
+        sudo mkdir -p "$JAIL_DIR$(dirname "$LD_LOADER")"
+        sudo cp -L "$LD_LOADER" "$JAIL_DIR$LD_LOADER"
+        echo "   -> Copied dynamic linker: $LD_LOADER"
+    fi
+
+    # Create /etc/passwd and /etc/group (minimal) to allow commands like 'ls -l' to show usernames
+    echo "root:x:0:0:root:/root:/bin/bash" | sudo tee "$JAIL_DIR"/etc/passwd > /dev/null
+    echo "root:x:0:" | sudo tee "$JAIL_DIR"/etc/group > /dev/null
+    echo "--- SETUP COMPLETE ---"
+fi
+
+# 2. Execute the command inside the jail
+echo "🚀 Executing command inside jail..."
+
+# Mount /proc filesystem before running the command
+sudo mount -t proc proc "$JAIL_DIR"/proc
+
+# The chroot command requires the path to the executable *inside* the jail
+# We use /bin/bash inside the jail to execute the actual command with arguments.
+sudo chroot "$JAIL_DIR" /bin/bash -c "$*"
+EXIT_CODE=$?
+
+# 3. Cleanup mounts (important!)
+cleanup
+
+echo "🚪 Exited jail. Worker finished with exit code $EXIT_CODE."
+exit $EXIT_CODE
+```
+
+## 📝 Key Differences (Manual vs. `debootstrap`)
+
+| Feature | `debootstrap` Method | Manual Copying Method |
+| :--- | :--- | :--- |
+| **Size** | Larger (minimal Debian base system). | **Minimal** (only what the worker needs). |
+| **Complexity** | Easier, automated provisioning. | Requires manual dependency checking (`ldd`). |
+| **Security** | Good, but contains more unused files. | **Better isolation** (fewer external tools). |
+| **Setup Time** | Slower (downloads and installs packages). | Faster (just copies files). |
+| **Dependency Mgmt.**| Automatically handled by Debian's package manager within the jail. | Must be done manually for every required binary. |
+
+- use same "man" setup as other edition
