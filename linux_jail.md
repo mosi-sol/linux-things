@@ -5,6 +5,10 @@ sandboxed environment for a process by changing its apparent root directory.
 - first: use debootstrap
 - second: pure edition
 
+When use for ai-agent:
+- Improved Execution: `sudo chroot "$JAIL_DIR" /usr/bin/setpriv --no-new-privs --clear-groups --reset-env --uid=1000 --gid=1000 --exec /bin/bash -c "$*"`
+- Note: This assumes a non-root user (UID/GID 1000) is manually added to the jail's `/etc/passwd` and `/etc/group` files during setup.
+
 -----
 
 # Debootstrap edition
