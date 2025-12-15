@@ -20,8 +20,6 @@ ms /path/to/dir # List files in a specific directory
 ```
 
 #### **Example Outputs**
-- **Default View**:
-  ![Default View](https://via.placeholder.com/400x100?text=Colorized+file+list)
 - **Tree View (`-t`)**:
   ```
   .
