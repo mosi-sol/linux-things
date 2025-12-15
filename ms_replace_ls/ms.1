@@ -1,0 +1,54 @@
+.TH MS 1 "December 2025" "ms 1.0" "User Commands"
+.SH NAME
+ms \- Python-based 'ls' replacement with tree view
+.SH SYNOPSIS
+.B ms
+[\fI\-a\fR] [\fI\-l\fR] [\fI\-H\fR] [\fI\-t\fR] [\fIpath\fR]
+.SH DESCRIPTION
+.B ms
+is a Python-based replacement for the Unix
+.B ls
+command, with additional features like tree view, colorized output, and human-readable file sizes.
+.SH OPTIONS
+.TP
+.B \-a, \-\-all
+Show hidden files (those starting with a dot).
+.TP
+.B \-l, \-\-long
+Use a long listing format, showing permissions, size, and modification time.
+.TP
+.B \-H, \-\-human
+Display file sizes in human-readable format (e.g., KB, MB, GB).
+.TP
+.B \-t, \-\-tree
+Display directories and files in a tree-like structure.
+.TP
+.B path
+The directory to list. Defaults to the current directory.
+.SH EXAMPLES
+.TP
+.B ms
+List files in the current directory.
+.TP
+.B ms \-l
+List files in long format.
+.TP
+.B ms \-a
+List all files, including hidden ones.
+.TP
+.B ms \-t
+List files and directories in a tree view.
+.TP
+.B ms \-lH
+List files in long format with human-readable sizes.
+.TP
+.B ms /path/to/dir
+List files in the specified directory.
+.SH AUTHOR
+Written by mosi pvp.
+.SH REPORTING BUGS
+Report bugs to <your-email@example.com>.
+.SH COPYRIGHT
+Copyright \(co 2025 mosi pvp.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.

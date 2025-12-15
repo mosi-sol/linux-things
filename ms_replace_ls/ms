@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+import os
+import sys
+import argparse
+from datetime import datetime
+
+# ANSI color codes
+COLORS = {
+    "reset": "\033[0m",
+    "dir": "\033[94m",    # Blue
+    "exe": "\033[92m",    # Green
+    "link": "\033[96m",   # Cyan
+    "other": "\033[0m",   # Default
+}
+
+def get_file_type(filepath):
+    if os.path.isdir(filepath):
+        return "dir"
+    elif os.path.islink(filepath):
+        return "link"
+    elif os.path.isfile(filepath) and os.access(filepath, os.X_OK):
+        return "exe"
+    else:
+        return "other"
+
+def format_size(size):
+    for unit in ['B', 'KB', 'MB', 'GB']:
+        if size < 1024.0:
+            return f"{size:.1f} {unit}"
+        size /= 1024.0
+    return f"{size:.1f} TB"
+
+def list_files(path=".", show_hidden=False, long_format=False, human_readable=False):
+    try:
+        files = os.listdir(path)
+    except PermissionError:
+        print(f"Permission denied: {path}", file=sys.stderr)
+        return
+
+    if not show_hidden:
+        files = [f for f in files if not f.startswith('.')]
+
+    if long_format:
+        for file in sorted(files):
+            filepath = os.path.join(path, file)
+            stat = os.stat(filepath)
+            file_type = get_file_type(filepath)
+            color = COLORS[file_type]
+            size = stat.st_size
+            if human_readable:
+                size = format_size(size)
+            mtime = datetime.fromtimestamp(stat.st_mtime).strftime('%b %d %H:%M')
+            perms = oct(stat.st_mode)[-3:]
+            print(
+                f"{perms} {color}{file}{COLORS['reset']} "
+                f"{size:>10} {mtime}"
+            )
+    else:
+        for file in sorted(files):
+            filepath = os.path.join(path, file)
+            file_type = get_file_type(filepath)
+            color = COLORS[file_type]
+            print(f"{color}{file}{COLORS['reset']}", end="  ")
+        print()
+
+def tree_view(path=".", show_hidden=False, prefix=""):
+    try:
+        files = os.listdir(path)
+    except PermissionError:
+        print(f"Permission denied: {path}", file=sys.stderr)
+        return
+
+    if not show_hidden:
+        files = [f for f in files if not f.startswith('.')]
+
+    for i, file in enumerate(sorted(files)):
+        filepath = os.path.join(path, file)
+        file_type = get_file_type(filepath)
+        color = COLORS[file_type]
+
+        if i == len(files) - 1:
+            print(f"{prefix}└── {color}{file}{COLORS['reset']}")
+            new_prefix = prefix + "    "
+        else:
+            print(f"{prefix}├── {color}{file}{COLORS['reset']}")
+            new_prefix = prefix + "│   "
+
+        if os.path.isdir(filepath):
+            tree_view(filepath, show_hidden, new_prefix)
+
+def main():
+    parser = argparse.ArgumentParser(description="Python-based 'ls' replacement with tree view")
+    parser.add_argument("-a", "--all", action="store_true", help="Show hidden files")
+    parser.add_argument("-l", "--long", action="store_true", help="Long format")
+    parser.add_argument("-H", "--human", action="store_true", help="Human-readable sizes")
+    parser.add_argument("-t", "--tree", action="store_true", help="Tree view")
+    parser.add_argument("path", nargs="?", default=".", help="Path to list")
+    args = parser.parse_args()
+
+    if args.tree:
+        tree_view(args.path, args.all)
+    else:
+        list_files(args.path, args.all, args.long, args.human)
+
+if __name__ == "__main__":
+    main()
