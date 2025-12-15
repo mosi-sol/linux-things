@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+import os
+import sys
+import argparse
+from datetime import datetime
+
+# ANSI color codes
+COLORS = {
+    "reset": "\033[0m",
+    "dir": "\033[94m",    # Blue
+    "exe": "\033[92m",    # Green
+    "link": "\033[96m",   # Cyan
+    "other": "\033[0m",   # Default
+    "zebra1": "\033[100m",  # Gray background for zebra rows
+    "zebra2": "\033[49m",   # Reset background for zebra rows
+}
+
+def get_file_type(filepath):
+    if os.path.isdir(filepath):
+        return "dir"
+    elif os.path.islink(filepath):
+        return "link"
+    elif os.path.isfile(filepath) and os.access(filepath, os.X_OK):
+        return "exe"
+    else:
+        return "other"
+
+def format_size(size):
+    for unit in ['B', 'KB', 'MB', 'GB']:
+        if size < 1024.0:
+            return f"{size:.1f} {unit}"
+        size /= 1024.0
+    return f"{size:.1f} TB"
+
+def list_files(path=".", show_hidden=False, long_format=False, human_readable=False, zebra=False, sort_by="name"):
+    try:
+        files = os.listdir(path)
+    except PermissionError:
+        print(f"Permission denied: {path}", file=sys.stderr)
+        return
+
+    if not show_hidden:
+        files = [f for f in files if not f.startswith('.')]
+
+    # Sort files
+    if sort_by == "type":
+        files.sort(key=lambda f: get_file_type(os.path.join(path, f)))
+    elif sort_by == "date":
+        files.sort(key=lambda f: os.path.getmtime(os.path.join(path, f)))
+    else:  # Default: sort by name
+        files.sort()
+
+    if long_format:
+        for i, file in enumerate(files):
+            filepath = os.path.join(path, file)
+            stat = os.stat(filepath)
+            file_type = get_file_type(filepath)
+            color = COLORS[file_type]
+            size = stat.st_size
+            if human_readable:
+                size = format_size(size)
+            mtime = datetime.fromtimestamp(stat.st_mtime).strftime('%b %d %H:%M')
+            perms = oct(stat.st_mode)[-3:]
+            zebra_bg = COLORS["zebra1"] if i % 2 == 0 else COLORS["zebra2"]
+            print(
+                f"{zebra_bg}{perms} {color}{file:<20}{COLORS['reset']} "
+                f"{size:>10} {mtime}{COLORS['reset']}"
+            )
+    elif human_readable:
+        for file in files:
+            filepath = os.path.join(path, file)
+            file_type = get_file_type(filepath)
+            color = COLORS[file_type]
+            size = os.path.getsize(filepath)
+            print(f"{color}{file:<20}{COLORS['reset']} {format_size(size):>10}")
+    else:
+        for file in files:
+            filepath = os.path.join(path, file)
+            file_type = get_file_type(filepath)
+            color = COLORS[file_type]
+            print(f"{color}{file}{COLORS['reset']}", end="  ")
+        print()
+
+def tree_view_folders(path=".", show_hidden=False, prefix=""):
+    try:
+        files = os.listdir(path)
+    except PermissionError:
+        print(f"Permission denied: {path}", file=sys.stderr)
+        return
+
+    if not show_hidden:
+        files = [f for f in files if not f.startswith('.')]
+
+    for i, file in enumerate(sorted(files)):
+        filepath = os.path.join(path, file)
+        if os.path.isdir(filepath):
+            file_type = "dir"
+            color = COLORS[file_type]
+            if i == len(files) - 1:
+                print(f"{prefix}└── {color}{file}{COLORS['reset']}")
+                new_prefix = prefix + "    "
+            else:
+                print(f"{prefix}├── {color}{file}{COLORS['reset']}")
+                new_prefix = prefix + "│   "
+            tree_view_folders(filepath, show_hidden, new_prefix)
+
+def tree_view_metadata(path=".", show_hidden=False, prefix=""):
+    try:
+        files = os.listdir(path)
+    except PermissionError:
+        print(f"Permission denied: {path}", file=sys.stderr)
+        return
+
+    if not show_hidden:
+        files = [f for f in files if not f.startswith('.')]
+
+    for i, file in enumerate(sorted(files)):
+        filepath = os.path.join(path, file)
+        stat = os.stat(filepath)
+        file_type = get_file_type(filepath)
+        color = COLORS[file_type]
+        size = format_size(stat.st_size)
+        mtime = datetime.fromtimestamp(stat.st_mtime).strftime('%b %d %H:%M')
+
+        if i == len(files) - 1:
+            print(f"{prefix}└── {color}{file}{COLORS['reset']} ({size}, {mtime})")
+            new_prefix = prefix + "    "
+        else:
+            print(f"{prefix}├── {color}{file}{COLORS['reset']} ({size}, {mtime})")
+            new_prefix = prefix + "│   "
+
+        if os.path.isdir(filepath):
+            tree_view_metadata(filepath, show_hidden, new_prefix)
+
+def main():
+    parser = argparse.ArgumentParser(description="Python-based 'ls' replacement with advanced features")
+    parser.add_argument("-a", "--all", action="store_true", help="Show hidden files")
+    parser.add_argument("-l", "--long", action="store_true", help="Long format")
+    parser.add_argument("-L", "--long-zebra", action="store_true", help="Long format with zebra rows")
+    parser.add_argument("-H", "--human", action="store_true", help="Human-readable sizes in two rows")
+    parser.add_argument("-t", "--tree", action="store_true", help="Tree view (full)")
+    parser.add_argument("-T", "--tree-folders", action="store_true", help="Tree view (folders only)")
+    parser.add_argument("-M", "--tree-metadata", action="store_true", help="Tree view with metadata")
+    parser.add_argument("--sort", choices=["name", "type", "date"], default="name", help="Sort by name, type, or date")
+    parser.add_argument("path", nargs="?", default=".", help="Path to list")
+    args = parser.parse_args()
+
+    if args.tree:
+        tree_view_folders(args.path, args.all)
+    elif args.tree_folders:
+        tree_view_folders(args.path, args.all)
+    elif args.tree_metadata:
+        tree_view_metadata(args.path, args.all)
+    else:
+        list_files(args.path, args.all, args.long or args.long_zebra, args.human, args.long_zebra, args.sort)
+
+if __name__ == "__main__":
+    main()

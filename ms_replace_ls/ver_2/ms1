@@ -1,0 +1,75 @@
+.TH MS 1 "December 2025" "ms 1.0" "User Commands"
+.SH NAME
+ms \- Python-based 'ls' replacement with advanced features
+.SH SYNOPSIS
+.B ms
+[\fI\-a\fR] [\fI\-l\fR] [\fI\-L\fR] [\fI\-H\fR] [\fI\-t\fR] [\fI\-T\fR] [\fI\-M\fR] [\fI--sort\fR \fIname|type|date\fR] [\fIpath\fR]
+.SH DESCRIPTION
+.B ms
+is a Python-based replacement for the Unix
+.B ls
+command, with additional features like tree view, colorized output, human-readable file sizes, and sorting options.
+.SH OPTIONS
+.TP
+.B \-a, \-\-all
+Show hidden files (those starting with a dot).
+.TP
+.B \-l, \-\-long
+Use a long listing format, showing permissions, size, and modification time.
+.TP
+.B \-L, \-\-long-zebra
+Use a long listing format with zebra-styled rows for better readability.
+.TP
+.B \-H, \-\-human
+Display file sizes in human-readable format in two rows, with colorized types.
+.TP
+.B \-t, \-\-tree
+Display directories and files in a tree-like structure (full tree).
+.TP
+.B \-T, \-\-tree-folders
+Display only folders in a tree-like structure.
+.TP
+.B \-M, \-\-tree-metadata
+Display directories and files in a tree-like structure with metadata (size, modification time).
+.TP
+.B \-\-sort \fIname|type|date\fR
+Sort files by name (default), type, or modification date.
+.TP
+.B path
+The directory to list. Defaults to the current directory.
+.SH EXAMPLES
+.TP
+.B ms
+List files in the current directory.
+.TP
+.B ms \-l
+List files in long format.
+.TP
+.B ms \-L
+List files in long format with zebra-styled rows.
+.TP
+.B ms \-H
+List files with human-readable sizes in two rows.
+.TP
+.B ms \-t
+List files and directories in a full tree view.
+.TP
+.B ms \-T
+List only folders in a tree view.
+.TP
+.B ms \-M
+List files and directories in a tree view with metadata.
+.TP
+.B ms --sort type
+List files sorted by type.
+.TP
+.B ms /path/to/dir
+List files in the specified directory.
+.SH AUTHOR
+Written by mosi pvp.
+.SH REPORTING BUGS
+Report bugs to <your-email@example.com>.
+.SH COPYRIGHT
+Copyright \(co 2025 mosi pvp.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
