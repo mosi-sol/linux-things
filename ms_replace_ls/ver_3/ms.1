@@ -1,0 +1,179 @@
+.TH MS 1 "December 2025" "ms 1.1.1" "User Commands"
+.SH NAME
+ms \- Modern ls command replacement with enhanced formatting and features
+.SH SYNOPSIS
+.B ms
+[\fIOPTIONS\fR] [\fI/path/to/list\fR]...
+.SH DESCRIPTION
+.B ms
+is a modern replacement for the traditional
+.B ls
+command, providing enhanced formatting, better color coding, and additional features for directory listing.
+.PP
+The command lists directory contents, categorizing files by type (directories, regular files, symbolic links, and special files) and displaying them with color coding and optional detailed information.
+.SH OPTIONS
+.TP
+.B \-l, \-\-long
+Use a long listing format showing permissions, owner, group, size, and modification time.
+.TP
+.B \-a, \-\-all
+Show all files including those beginning with a dot (hidden files).
+.TP
+.B \-A, \-\-almost-all
+Show all files except . and ...
+.TP
+.B \-r, \-\-reverse
+Reverse the order of the sort.
+.TP
+.B \-t, \-\-sort=\fItype\fR
+Sort by
+.IR type ,
+where
+.I type
+is one of:
+.RS
+.TP
+.B name
+Sort alphabetically by filename (default).
+.TP
+.B size
+Sort by file size.
+.TP
+.B time
+Sort by modification time.
+.TP
+.B type
+Sort by file type.
+.RE
+.TP
+.B \-s, \-\-summary
+Show a summary at the end showing counts of different file types.
+.TP
+.B \-H, \-\-human
+Show sizes in human readable format (e.g., 1K, 2M, 3G).
+.TP
+
+.B \-k, \-\-tree
+Display directory contents in tree view format.
+.TP
+.B \-K, \-\-tree-metadata
+Display directory contents in tree view format with metadata (size and time).
+.TP
+.B \-n, \-\-table
+Display files in table format showing name and size.
+.TP
+.B \-N, \-\-two-column
+Display files in two-column format for better space utilization.
+.TP
+.B \-z, \-\-zebra
+Display files with zebra striping (alternating row colors).
+.TP
+.B \-Z, \-\-zebra-metadata
+Display files with zebra striping and metadata (size and time).
+.TP
+.B \-\-pattern=\fIpattern\fR
+Filter files by pattern using wildcards (e.g., *.py, test_*).
+.TP
+.B \-\-time-format=\fIformat\fR
+Specify custom time format (strftime format string).
+.TP
+.B \-\-version
+Show version information and exit.
+.SH OUTPUT MODES
+.PP
+.B ms
+supports multiple output formats:
+.TP
+.B List view (default)
+Traditional file listing with optional long format.
+.TP
+.B Tree view (-k, -K)
+Hierarchical tree-style display of directory contents.
+.TP
+.B Table view (-n)
+Tabular format showing filename and size columns.
+.TP
+.B Two-column view (-N)
+Efficient space utilization by displaying items in two columns.
+.TP
+.B Zebra view (-z, -Z)
+Alternating row colors for improved readability.
+.SH OUTPUT
+.PP
+.B ms
+categorizes and displays files with color coding:
+.TP
+.B Blue
+Directories
+.TP
+.B Cyan
+Symbolic links
+.TP
+.B Magenta
+Special files (devices, pipes, sockets)
+.TP
+.B Red
+Large files (>1MB)
+.TP
+.B Yellow
+Medium files (1KB-1MB)
+.TP
+.B White/Default
+Small files and regular text
+.SH ENVIRONMENT
+.TP
+.B COLORS
+Controls color output. If not set, colors are enabled by default if output is a terminal.
+.SH EXAMPLES
+.TP
+List current directory:
+.B ms
+.TP
+List with all details:
+.B ms \-l /etc
+.TP
+List all files including hidden:
+.B ms \-a
+.TP
+Sort by size, reverse order:
+.B ms \-Sr \-\-long
+.TP
+Show Python files with summary:
+.B ms \-\-pattern="*.py" \-s
+.TP
+Custom time format:
+.B ms \-l \-\-time-format="%Y\-%m\-%d %H:%M"
+.SH EXIT STATUS
+.TP
+.B 0
+Successful completion
+.TP
+.B >0
+An error occurred
+.SH AUTHOR
+Written by MiniMax Agent.
+.SH SEE ALSO
+.BR ls (1),
+.BR find (1),
+.BR stat (1)
+.SH NOTES
+.B ms
+provides enhanced features over traditional
+.B ls
+including:
+.IP
+\(bu Better color coding for file types and sizes
+.IP
+\(bu Automatic categorization of files
+.IP
+\(bu Human readable size formatting
+.IP
+\(bu Pattern filtering
+.IP
+\(bu Summary statistics
+.IP
+\(bu Custom time formatting
+.PP
+The command is designed to be compatible with
+.B ls
+while providing additional functionality for modern use cases.
