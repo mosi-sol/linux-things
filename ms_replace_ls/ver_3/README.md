@@ -31,9 +31,8 @@
 
 1. **Download the files:**
    ```bash
-   wget https://github.com/your-repo/ms/releases/latest/download/ms.tar.gz
-   tar -xzf ms.tar.gz
-   cd ms
+   gi clone https://github.com/mosi-sol/linux-things.git
+   cd linux-things/ms_replace_ls/ver_3
    ```
 
 2. **Run the installer:**
