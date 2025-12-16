@@ -1,7 +1,12 @@
 #!/bin/bash
 
-# Install ms command
-echo "Installing 'ms' command..."
+# Remove existing ms and man page
+echo "Removing old 'ms' files..."
+sudo rm -f /usr/local/bin/ms
+sudo rm -f /usr/local/man/man1/ms.1
+
+# Copy new ms script
+echo "Installing new 'ms' command..."
 sudo cp ms /usr/local/bin/ms
 sudo chmod +x /usr/local/bin/ms
 
