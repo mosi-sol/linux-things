@@ -25,14 +25,17 @@ def get_file_type(filepath):
     else:
         return "other"
 
-def format_size(size):
-    for unit in ['B', 'KB', 'MB', 'GB']:
-        if size < 1024.0:
-            return f"{size:.1f} {unit}"
-        size /= 1024.0
-    return f"{size:.1f} TB"
+def format_size(size, human_readable=False):
+    if human_readable:
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024.0:
+                return f"{size:.1f} {unit}"
+            size /= 1024.0
+        return f"{size:.1f} TB"
+    else:
+        return f"{size} B"
 
-def list_files(path=".", show_hidden=False, long_format=False, human_readable=False, zebra=False, sort_by="name"):
+def list_files(path=".", show_hidden=False, long_format=False, zebra=False, human_readable=False, sort_by="name"):
     try:
         files = os.listdir(path)
     except PermissionError:
@@ -50,61 +53,28 @@ def list_files(path=".", show_hidden=False, long_format=False, human_readable=Fa
     else:  # Default: sort by name
         files.sort()
 
-    if long_format:
-        for i, file in enumerate(files):
-            filepath = os.path.join(path, file)
-            stat = os.stat(filepath)
-            file_type = get_file_type(filepath)
-            color = COLORS[file_type]
-            size = stat.st_size
-            if human_readable:
-                size = format_size(size)
-            mtime = datetime.fromtimestamp(stat.st_mtime).strftime('%b %d %H:%M')
-            perms = oct(stat.st_mode)[-3:]
-            zebra_bg = COLORS["zebra1"] if i % 2 == 0 else COLORS["zebra2"]
+    for i, file in enumerate(files):
+        filepath = os.path.join(path, file)
+        stat = os.stat(filepath)
+        file_type = get_file_type(filepath)
+        color = COLORS[file_type]
+        size = stat.st_size
+        mtime = datetime.fromtimestamp(stat.st_mtime).strftime('%b %d %H:%M')
+        perms = oct(stat.st_mode)[-3:]
+
+        if long_format:
+            size_str = format_size(size, human_readable)
+            zebra_bg = COLORS["zebra1"] if zebra and i % 2 == 0 else COLORS["zebra2"]
             print(
                 f"{zebra_bg}{perms} {color}{file:<20}{COLORS['reset']} "
-                f"{size:>10} {mtime}{COLORS['reset']}"
+                f"{size_str:>10} {mtime}{COLORS['reset']}"
             )
-    elif human_readable:
-        for file in files:
-            filepath = os.path.join(path, file)
-            file_type = get_file_type(filepath)
-            color = COLORS[file_type]
-            size = os.path.getsize(filepath)
-            print(f"{color}{file:<20}{COLORS['reset']} {format_size(size):>10}")
-    else:
-        for file in files:
-            filepath = os.path.join(path, file)
-            file_type = get_file_type(filepath)
-            color = COLORS[file_type]
+        else:
             print(f"{color}{file}{COLORS['reset']}", end="  ")
+    if not long_format:
         print()
 
-def tree_view_folders(path=".", show_hidden=False, prefix=""):
-    try:
-        files = os.listdir(path)
-    except PermissionError:
-        print(f"Permission denied: {path}", file=sys.stderr)
-        return
-
-    if not show_hidden:
-        files = [f for f in files if not f.startswith('.')]
-
-    for i, file in enumerate(sorted(files)):
-        filepath = os.path.join(path, file)
-        if os.path.isdir(filepath):
-            file_type = "dir"
-            color = COLORS[file_type]
-            if i == len(files) - 1:
-                print(f"{prefix}└── {color}{file}{COLORS['reset']}")
-                new_prefix = prefix + "    "
-            else:
-                print(f"{prefix}├── {color}{file}{COLORS['reset']}")
-                new_prefix = prefix + "│   "
-            tree_view_folders(filepath, show_hidden, new_prefix)
-
-def tree_view_metadata(path=".", show_hidden=False, prefix=""):
+def tree_view(path=".", show_hidden=False, folders_only=False, metadata=False, prefix=""):
     try:
         files = os.listdir(path)
     except PermissionError:
@@ -119,26 +89,37 @@ def tree_view_metadata(path=".", show_hidden=False, prefix=""):
         stat = os.stat(filepath)
         file_type = get_file_type(filepath)
         color = COLORS[file_type]
-        size = format_size(stat.st_size)
-        mtime = datetime.fromtimestamp(stat.st_mtime).strftime('%b %d %H:%M')
+
+        if folders_only and not os.path.isdir(filepath):
+            continue
 
         if i == len(files) - 1:
-            print(f"{prefix}└── {color}{file}{COLORS['reset']} ({size}, {mtime})")
+            if metadata:
+                size = format_size(stat.st_size, human_readable=True)
+                mtime = datetime.fromtimestamp(stat.st_mtime).strftime('%b %d %H:%M')
+                print(f"{prefix}└── {color}{file}{COLORS['reset']} ({size}, {mtime})")
+            else:
+                print(f"{prefix}└── {color}{file}{COLORS['reset']}")
             new_prefix = prefix + "    "
         else:
-            print(f"{prefix}├── {color}{file}{COLORS['reset']} ({size}, {mtime})")
+            if metadata:
+                size = format_size(stat.st_size, human_readable=True)
+                mtime = datetime.fromtimestamp(stat.st_mtime).strftime('%b %d %H:%M')
+                print(f"{prefix}├── {color}{file}{COLORS['reset']} ({size}, {mtime})")
+            else:
+                print(f"{prefix}├── {color}{file}{COLORS['reset']}")
             new_prefix = prefix + "│   "
 
         if os.path.isdir(filepath):
-            tree_view_metadata(filepath, show_hidden, new_prefix)
+            tree_view(filepath, show_hidden, folders_only, metadata, new_prefix)
 
 def main():
     parser = argparse.ArgumentParser(description="Python-based 'ls' replacement with advanced features")
     parser.add_argument("-a", "--all", action="store_true", help="Show hidden files")
-    parser.add_argument("-l", "--long", action="store_true", help="Long format")
-    parser.add_argument("-L", "--long-zebra", action="store_true", help="Long format with zebra rows")
+    parser.add_argument("-l", "--long", action="store_true", help="Long format (bytes)")
+    parser.add_argument("-L", "--long-zebra", action="store_true", help="Long format with zebra rows (KB/MB/GB)")
     parser.add_argument("-H", "--human", action="store_true", help="Human-readable sizes in two rows")
-    parser.add_argument("-t", "--tree", action="store_true", help="Tree view (full)")
+    parser.add_argument("-t", "--tree", action="store_true", help="Tree view (all files and folders)")
     parser.add_argument("-T", "--tree-folders", action="store_true", help="Tree view (folders only)")
     parser.add_argument("-M", "--tree-metadata", action="store_true", help="Tree view with metadata")
     parser.add_argument("--sort", choices=["name", "type", "date"], default="name", help="Sort by name, type, or date")
@@ -146,13 +127,13 @@ def main():
     args = parser.parse_args()
 
     if args.tree:
-        tree_view_folders(args.path, args.all)
+        tree_view(args.path, args.all, folders_only=False, metadata=False)
     elif args.tree_folders:
-        tree_view_folders(args.path, args.all)
+        tree_view(args.path, args.all, folders_only=True, metadata=False)
     elif args.tree_metadata:
-        tree_view_metadata(args.path, args.all)
+        tree_view(args.path, args.all, folders_only=False, metadata=True)
     else:
-        list_files(args.path, args.all, args.long or args.long_zebra, args.human, args.long_zebra, args.sort)
+        list_files(args.path, args.all, args.long or args.long_zebra, args.long_zebra, args.human, args.sort)
 
 if __name__ == "__main__":
     main()

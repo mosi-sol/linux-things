@@ -15,10 +15,10 @@ command, with additional features like tree view, colorized output, human-readab
 Show hidden files (those starting with a dot).
 .TP
 .B \-l, \-\-long
-Use a long listing format, showing permissions, size, and modification time.
+Use a long listing format, showing permissions, size (in bytes), and modification time.
 .TP
 .B \-L, \-\-long-zebra
-Use a long listing format with zebra-styled rows for better readability.
+Use a long listing format with zebra-styled rows and human-readable sizes (KB/MB/GB).
 .TP
 .B \-H, \-\-human
 Display file sizes in human-readable format in two rows, with colorized types.
@@ -33,7 +33,7 @@ Display only folders in a tree-like structure.
 Display directories and files in a tree-like structure with metadata (size, modification time).
 .TP
 .B \-\-sort \fIname|type|date\fR
-Sort files by name (default), type, or modification date.
+Sort files by name (default), type, or date.
 .TP
 .B path
 The directory to list. Defaults to the current directory.
@@ -43,10 +43,10 @@ The directory to list. Defaults to the current directory.
 List files in the current directory.
 .TP
 .B ms \-l
-List files in long format.
+List files in long format (bytes).
 .TP
 .B ms \-L
-List files in long format with zebra-styled rows.
+List files in long format with zebra rows (KB/MB/GB).
 .TP
 .B ms \-H
 List files with human-readable sizes in two rows.
@@ -66,10 +66,10 @@ List files sorted by type.
 .B ms /path/to/dir
 List files in the specified directory.
 .SH AUTHOR
-Written by mosi pvp.
+Written by mosi-sol.
 .SH REPORTING BUGS
 Report bugs to <your-email@example.com>.
 .SH COPYRIGHT
-Copyright \(co 2025 mosi pvp.
+Copyright \(co 2025 mosi-sol.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
