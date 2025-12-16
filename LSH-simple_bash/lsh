@@ -1,0 +1,142 @@
+#!/bin/bash
+
+# --- Built-in Commands ---
+help() {
+    echo "LSH (Linux Simple Shell) - A custom Bash shell"
+    echo "Type commands and press Enter to execute them."
+    echo "Built-in commands:"
+    echo "  exit      - Exit the shell"
+    echo "  help      - Display this help message"
+    echo "  echo      - Print arguments"
+    echo "  type      - Show if a command is built-in or external"
+    echo "  alias     - Create or display command aliases"
+    echo "  set       - Set or display environment variables"
+    echo "  export    - Export environment variables"
+    echo "  source    - Execute a script in the current shell"
+    echo "  history   - Display command history"
+    echo "  jobs      - Display background jobs"
+    echo "  fg        - Bring job to foreground"
+    echo "  bg        - Send job to background"
+}
+
+echo_lsh() {
+    echo "${@:1}"
+}
+
+type_lsh() {
+    if [[ "$(type -t "$1")" == "builtin" ]]; then
+        echo "$1 is a shell builtin"
+    elif command -v "$1" &>/dev/null; then
+        echo "$1 is $(command -v "$1")"
+    else
+        echo "$1 not found"
+    fi
+}
+
+alias_lsh() {
+    if [ $# -eq 0 ]; then
+        alias
+    else
+        alias "$@"
+    fi
+}
+
+set_lsh() {
+    if [ $# -eq 0 ]; then
+        env
+    else
+        export "$@"
+    fi
+}
+
+export_lsh() {
+    if [ $# -eq 0 ]; then
+        export -p
+    else
+        export "$@"
+    fi
+}
+
+source_lsh() {
+    if [ $# -eq 0 ]; then
+        echo "Usage: source <script>"
+    else
+        source "$1"
+    fi
+}
+
+history_lsh() {
+    history | awk '{print $1 "  " $2}'
+}
+
+jobs_lsh() {
+    jobs
+}
+
+fg_lsh() {
+    fg "$@"
+}
+
+bg_lsh() {
+    bg "$@"
+}
+
+# --- Initialize ---
+history -s help
+history -s echo
+history -s type
+history -s alias
+history -s set
+history -s export
+history -s source
+history -s history
+history -s jobs
+history -s fg
+history -s bg
+
+# --- Readline Integration ---
+if ! [[ $- == *i* ]]; then
+    echo "LSH: Interactive mode only. Use 'lsh' to start."
+    exit 1
+fi
+
+# --- Main Shell Loop ---
+while true; do
+    # Display prompt
+    read -e -p "lsh> " cmd
+    history -s "$cmd"
+    cmd_parts=($cmd)
+    command="${cmd_parts[0]}"
+
+    # Exit the shell
+    if [[ "$command" == "exit" ]]; then
+        echo "Exiting LSH. Goodbye!"
+        exit 0
+    fi
+
+    # Built-in commands
+    case "$command" in
+        help) help ;;
+        echo) shift; echo_lsh "$@" ;;
+        type) type_lsh "${cmd_parts[1]}" ;;
+        alias) shift; alias_lsh "$@" ;;
+        set) shift; set_lsh "$@" ;;
+        export) shift; export_lsh "$@" ;;
+        source) shift; source_lsh "$@" ;;
+        history) history_lsh ;;
+        jobs) jobs_lsh ;;
+        fg) shift; fg_lsh "$@" ;;
+        bg) shift; bg_lsh "$@" ;;
+        cd)
+            shift
+            dir="${*:-~}"
+            cd "$dir" || echo "cd: No such directory: $dir"
+            ;;
+        *)
+            # External commands and shell scripts
+            if [[ -n "$cmd" ]]; then
+                eval "$cmd" || echo "Command failed: $cmd"
+            fi
+            ;;
+    esac
+done
