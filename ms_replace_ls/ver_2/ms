@@ -11,8 +11,8 @@ COLORS = {
     "exe": "\033[92m",    # Green
     "link": "\033[96m",   # Cyan
     "other": "\033[0m",   # Default
-    "zebra1": "\033[100m",  # Gray background for zebra rows
-    "zebra2": "\033[49m",   # Reset background for zebra rows
+    "zebra1": "\033[100m", # Gray background for zebra rows
+    "zebra2": "\033[49m",  # Reset background for zebra rows
 }
 
 def get_file_type(filepath):
@@ -57,18 +57,18 @@ def list_files(path=".", show_hidden=False, long_format=False, zebra=False, huma
         files.sort()
 
     if human_readable:
-        # First row: filenames
+        # First row: filenames (colorized)
         for file in files:
             filepath = os.path.join(path, file)
             file_type = get_file_type(filepath)
             color = COLORS[file_type]
-            print(f"{color}{file:<20}{COLORS['reset']}", end="  ")
+            print(f"{color}{file:<20}{COLORS['reset']}", end=" ")
         print()
-        # Second row: sizes
+        # Second row: sizes (KB/MB/GB)
         for file in files:
             filepath = os.path.join(path, file)
             size = os.path.getsize(filepath)
-            print(f"{format_size(size, human_readable):<20}", end="  ")
+            print(f"{format_size(size, human_readable):<20}", end=" ")
         print()
     elif long_format:
         for i, file in enumerate(files):
