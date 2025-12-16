@@ -18,10 +18,10 @@ Show hidden files (those starting with a dot).
 Use a long listing format, showing permissions, size (in bytes), and modification time.
 .TP
 .B \-L, \-\-long-zebra
-Use a long listing format with zebra-styled rows and human-readable sizes (KB/MB/GB).
+Use a long listing format with zebra-styled rows and human-readable sizes (KB/MB/GB, no bytes for files > 1 MB).
 .TP
 .B \-H, \-\-human
-Display file sizes in human-readable format in two rows, with colorized types.
+Display file sizes in a two-row table format, with colorized types.
 .TP
 .B \-t, \-\-tree
 Display directories and files in a tree-like structure (full tree).
@@ -49,7 +49,7 @@ List files in long format (bytes).
 List files in long format with zebra rows (KB/MB/GB).
 .TP
 .B ms \-H
-List files with human-readable sizes in two rows.
+List files with sizes in a two-row table (colorized).
 .TP
 .B ms \-t
 List files and directories in a full tree view.
