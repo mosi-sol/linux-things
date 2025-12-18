@@ -1,0 +1,203 @@
+.TH MS 1 "December 2025" "1.0" "User Commands"
+.SH NAME
+ms \- list directory contents with advanced formatting options
+.SH SYNOPSIS
+.B ms
+[\fIOPTIONS\fR] [\fIPATH\fR]...
+.SH DESCRIPTION
+.B ms
+is a modern replacement for the traditional
+.B ls
+command with enhanced formatting options and display modes.
+.PP
+Without options,
+.B ms
+lists the files in the current directory in alphabetical order.
+.SH OPTIONS
+.TP
+.B \-h, \-\-help
+Display help information and exit.
+.TP
+.B \-l
+List in long format, showing file permissions, owner, group, size, and modification time.
+.TP
+.B \-a, \-\-all
+List all files, including hidden files (those beginning with '.').
+.TP
+.B \-R, \-\-recursive
+List directories recursively.
+.TP
+.B \-k
+Display directory contents in tree format.
+.TP
+.B \-K
+Display directory contents in tree format with metadata (permissions, size, modification time).
+.TP
+.B \-n
+Display contents in table format with filename and file size columns.
+.TP
+.B \-N
+Display contents in 2-column row format.
+.TP
+.B \-z
+Display contents in zebra-striped list view with alternating row colors.
+.TP
+.B \-Z
+Display contents in zebra-striped list view with metadata columns.
+.TP
+.B \-H, \-\-human\-readable
+Display file sizes in human-readable format (K, M, G, etc.).
+.TP
+.B \-t
+Display contents in horizontal table format (2xN layout).
+.TP
+.B \-T
+Display contents in horizontal table format with metadata.
+.TP
+.B \-d
+Show detailed information about each file.
+.TP
+.B \-\-sort=\fISORT_BY\fR
+Sort files by specified criteria:
+.RS
+.TP
+.B name
+Sort alphabetically by filename (default).
+.TP
+.B size
+Sort by file size.
+.TP
+.B time
+Sort by modification time.
+.TP
+.B type
+Sort by file type.
+.RE
+.TP
+.B \-\-reverse
+Reverse the sort order.
+.SH DISPLAY MODES
+.SS Tree View (\-k, \-K)
+The tree view displays directory contents in a hierarchical tree structure:
+.PP
+.B \-k
+Displays simple tree structure.
+.PP
+.B \-K
+Displays tree structure with metadata including permissions, size, and modification time.
+.SS Table Modes (\-n, \-t, \-T)
+Table modes display files in organized columns:
+.PP
+.B \-n
+Two-column table showing filename and size.
+.PP
+.B \-t
+Horizontal table layout (2xN) showing filenames only.
+.PP
+.B \-T
+Horizontal table layout with metadata (size, permissions).
+.SS Zebra List (\-z, \-Z)
+Zebra list modes display files with alternating row colors for better readability:
+.PP
+.B \-z
+Zebra striped list with filename only.
+.PP
+.B \-Z
+Zebra striped list with metadata columns.
+.SH SORTING
+Files can be sorted by different criteria using the
+.B \-\-sort
+option:
+.IP
+.B \-\-sort=name
+Sort alphabetically by filename (default behavior).
+.IP
+.B \-\-sort=size
+Sort by file size, smallest first.
+.IP
+.B \-\-sort=time
+Sort by modification time, newest first.
+.IP
+.B \-\-sort=type
+Sort by file type (directories first, then regular files, etc.).
+.PP
+The
+.B \-\-reverse
+option reverses any sort order.
+.SH HUMAN READABLE SIZES
+When the
+.B \-H
+option is used, file sizes are displayed in a more readable format:
+.IP
+.B 1023 bytes
+or less: displayed as bytes
+.IP
+.B 1024 bytes
+to 1 MB: displayed as K (kilobytes)
+.IP
+.B 1 MB
+to 1 GB: displayed as M (megabytes)
+.IP
+.B 1 GB
+to 1 TB: displayed as G (gigabytes)
+.IP
+.B 1 TB
+and above: displayed as T (terabytes)
+.SH EXAMPLES
+.TP
+.B ms
+List files in current directory.
+.TP
+.B ms \-l /home/user
+List files in /home/user in long format.
+.TP
+.B ms \-k /usr/bin
+Display /usr/bin contents in tree format.
+.TP
+.B ms \-n \-H .
+Display current directory in table format with human-readable sizes.
+.TP
+.B ms \-z \-R
+Display current directory recursively with zebra striping.
+.TP
+.B ms \-\-sort=size \-\-reverse \-l
+List files sorted by size (largest first) in long format.
+.TP
+.B ms \-T \-H /var/log
+Display /var/log in horizontal table with metadata and human-readable sizes.
+.SH ENVIRONMENT
+.TP
+.B HOME
+Used to determine the user's home directory.
+.TP
+.B PWD
+Current working directory.
+.SH EXIT STATUS
+.TP
+.B 0
+Successful completion.
+.TP
+.B 1
+General error or file access problem.
+.SH AUTHOR
+Lotuschain_org Agent
+.SH "SEE ALSO"
+.BR ls (1),
+.BR tree (1),
+.BR find (1)
+.SH NOTES
+.PP
+The
+.B ms
+command is designed as a modern replacement for
+.B ls
+with enhanced visual formatting options.
+.PP
+Some display modes may not work properly on all terminal emulators.
+.PP
+Zebra list modes use ANSI color codes and may not display correctly on all systems.
+.SH BUGS
+.PP
+Report bugs to the system administrator.
+.PP
+The command may behave differently on various Unix-like systems due to filesystem differences.
